@@ -1,0 +1,10 @@
+.*
+!.gitignore
+_notes/
+node_modules/
+htdocs/src/yuidocs
+htdocs/src/yui-themes
+htdocs/src/sassdocs
+themes/
+library/
+createJS/

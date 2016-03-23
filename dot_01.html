@@ -1,0 +1,70 @@
+<!DOCTYPE HTML>
+<!--[if IE 9]><html lang="ja" class="ie9"><![endif]-->
+<!--[if !IE]>-->
+<html lang="ja"><!-- InstanceBegin template="/Templates/base.dwt" codeOutsideHTMLIsLocked="true" -->
+<!--<![endif]-->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title></title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<meta name="viewport" content="width=1080px,user-scalable=yes">
+<link rel="stylesheet" type="text/css" href="common/style/layout.css">
+<link rel="stylesheet" type="text/css" href="common/style/contents.css">
+<link rel="stylesheet" type="text/css" href="common/style/temp.css">
+<!-- InstanceBeginEditable name="head" -->
+<!--[if lt IE 9]><script src="../common/js/html5.js"></script><![endif]-->
+<style type="text/css">
+#myCanvas { background:#fff;}
+#head { position: absolute; top:30px; left:30px; z-index: 500; color: #fff; font-size:100px; letter-spacing: 1px; text-shadow: 0 1px 1px #fff, 0 -1px 1px #fff, 1px 0 1px #fff,-1px 0 1px #fff; font-family: 'Montserrat', sans-serif;}
+#head span { font-size:40px; letter-spacing:6px;}
+#rule { position: absolute; top:180px; left:37px; z-index: 500; color: #fff; font-size:10px; /*text-shadow:20px 10px 0 rgba(0, 0, 0, 0.29);*/}
+#rule li { letter-spacing: 2px; line-height:3.5;text-shadow: 0 1px 1px #fff, 0 -1px 1px #fff, 1px 0 1px #fff,-1px 0 1px #fff;}
+
+
+</style>
+
+<!-- InstanceEndEditable -->
+<!-- InstanceParam name="ページタイトル" type="text" value="" -->
+<!-- InstanceParam name="Keyword" type="text" value="" -->
+<!-- InstanceParam name="Description" type="text" value="" -->
+<!-- InstanceParam name="ページid" type="text" value="" -->
+<!-- InstanceParam name="ページclass" type="text" value="full" -->
+<!-- InstanceParam name="viewport" type="text" value="width=1080px,user-scalable=yes" -->
+
+</head>
+<body id="" class="full">
+<!-- ============= wrapper ============= -->
+<div id="wrapper"> 
+	<!-- ============= contents ============= -->
+	<main id="contents"><!-- InstanceBeginEditable name="メイン部分" -->
+	<p id="head">DOT_01<span>.js</span></p>
+	<ol id="rule">
+		<li>１．点はランダムに配置</li>
+		<li>２．点はランダムに設定された一定の速度で直進</li>
+		<li>３．点同士が近づくとシェイプが拡大する</li>
+		<li>４．シェイプの重なりは「除外」の塗りになる</li>
+		<li>５．画面外に移動した点は反対側に移動する</li>
+	</ol>
+	<canvas id="myCanvas" width="800" height="600"></canvas>
+	<!-- InstanceEndEditable --> </main>
+	<!-- /============= contents ============= --> 
+	<!-- InstanceBeginEditable name="wrapper-last" --> <!-- InstanceEndEditable --> </div>
+<!-- /============= wrapper ============= --> 
+<script type="text/javascript" src="common/js/minify/base.js"></script>
+<script type="text/javascript" src="common/js/develop/perlin-noise-simplex.js"></script>
+<script type="text/javascript" src="common/js/develop/Planet.js"></script>
+<!-- InstanceBeginEditable name="body-last" -->
+<script type="text/javascript" src="common/js/develop/Cif.js"></script>
+<script type="text/javascript" src="common/js/test/dot_01.js"></script>
+<script>
+	var cif = new Cif({
+		id:"myCanvas"
+	});
+</script>
+<!-- InstanceEndEditable --> 
+<script type="text/javascript" src="common/js/main.js"></script> 
+<script type="text/javascript" src="common/js/ga.js"></script>
+</body>
+<!-- InstanceEnd --></html>

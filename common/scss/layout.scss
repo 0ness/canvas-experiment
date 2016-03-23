@@ -1,0 +1,91 @@
+@charset "UTF-8";
+//
+//記述はレイアウトの構造優先
+//-----------------------------
+//1.width,height
+//2.float,clear
+//3.position,top,bottom,left,right
+//4.overflow,display
+//5.margin,padding
+//6.text-align
+//7.font,line-height
+//8.background,border
+//9.etc....
+//-----------------------------
+//
+//フォントサイズ：%表示（20px以降はpxで可）
+
+
+
+@import "partials/_setting";
+@import "partials/_mixin";
+@import "partials/_function";
+@import "partials/_reset";
+
+
+
+
+
+/*============================================================
+LAYOUT用スタイル　
+============================================================*/
+html	{ height:100%;}
+body	{ height:100%; text-align:left;
+
+	& > #wrapper { height:auto;}
+	
+	#wrapper { min-width:1080px; min-height:100%; height:auto !important; height:100%; position:relative; overflow: hidden;
+		@include iphone	{ -webkit-text-size-adjust: none;}
+		
+		//ページトップに戻る
+		#top_back	{}
+	}
+	&.full {overflow:hidden;
+		#myCanvas { position:absolute; top:0; left:0;}
+	}
+
+	@include select-color(#fff,scheme(key));
+}
+
+
+
+
+/*CONTENTS
+--------------------------------------------------------------------*/
+
+/* コンテンツ部分 */
+#contents	{ position:relative;}
+
+
+#cif-nav { @include wh(80,auto); @include bottom-left(5,5,9999);
+	&__play-btn,
+	&__stop-btn,
+	&__dl-btn { @include wh(100%,auto); padding: 10px 0 10px 10px; line-height: 1; font-size: 11px; color: gray; background: #000; border-radius: 3px;
+		&:before   	{ content: "●"; display: inline-block; margin-right: 5px; font-size:10px; opacity: 0.3;}
+		&:after  	{ display: inline-block;}
+		&.is-played { display: block !important; color: white; cursor: pointer;
+			&:before{ opacity: 1;}
+			&:hover { background:#111; text-shadow: 0 0 5px;}
+		}
+	}
+	&__play-btn  {
+		&:before 	{ color: red;}
+		&:after  	{ content: "Rec Start";}
+	}
+	&__stop-btn  { margin: 3px 0 0;
+		&:before 	{ color: blue;}
+		&:after  	{ content: "Rec Finish";}
+	}
+	&__dl-btn { display: none; margin: 3px 0 0; text-decoration: none; 
+		&:before 	{ color: green;}
+		&:after  	{ content: "Download";}
+	}
+}
+#cif-result { @include top-left(0,0,999); right: 0;bottom: 0; margin: auto; visibility: hidden;
+	&.is-displayed { visibility: visible;}
+}
+
+.dg.ac { z-index: 9999;}
+
+
+
