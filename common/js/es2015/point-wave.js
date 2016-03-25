@@ -46,7 +46,7 @@
 			this.width			= windowWidth;
 			this.height			= windowHeight;
 			
-			this.xLength 		= 20;
+			this.xLength 		= 100;
 			this.yLength		= 20;
 			this.xDistance		= this.width / this.xLength;
 			this.yDistance		= this.hegiht / this.yLength;
