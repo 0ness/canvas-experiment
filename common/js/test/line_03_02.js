@@ -334,13 +334,9 @@
 	/*flow 開始
 	--------------------------------------------------------------------*/
 	window.addEventListener("resize",resetup);
-//	window.addEventListener("mousemove",function(e){
-//		mousePoint = lib.getMousePoint(e);
-//	});
+	resize();
 
 	setup();
 	draw();
 	loop();
-	
-	return false;
 }());

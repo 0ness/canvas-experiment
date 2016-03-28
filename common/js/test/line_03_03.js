@@ -343,9 +343,8 @@
 	/*flow 開始
 	--------------------------------------------------------------------*/
 	window.addEventListener("resize",resetup);
-
+	resize();
 	setup();
 	loop()
 	
-	return false;
 }());

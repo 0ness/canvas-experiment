@@ -25,8 +25,7 @@ $(function(){
 			canvas = doc.getElementById("myCanvas"),
 			ctx = canvas.getContext("2d");
 
-		var pages = new PageInfo(),
-			lib = new Library();
+		var pages = new PageInfo();
 
 		var $main = $(doc.getElementById("main")),
 			$ancherTag = (s_pageUA === "webkit") ? $("body"):$("html");
@@ -106,10 +105,10 @@ $(function(){
 
 			this.lineWidth = 1;
 			this.lineLen = 50;
-			this.lineDeff = 10;
-			this.devideY = 1;
+			this.lineDeff = 20;
+			this.devideY = 20;
 			this.slideY = 0;
-			this.bgAlpha = 0.2;
+			this.bgAlpha = 0.1;
 			this.composition = "source-over";
 			
 			this.drawPattern = "slide";
@@ -143,22 +142,22 @@ $(function(){
 			this.pointLen = 500;
 			this.pointFPS = 5;
 
-			this.marginY = 0;
-			this.paddingX = 100;
-			this.paddingY = 100;
+			this.marginY = 50;
+			this.paddingX = 0;
+			this.paddingY = 0;
 			
 			return false;
 		};
 
 		
 		/* object dat.GUI用オブジェクト */
-		var gui = new dat.GUI();
-		var param = new ParamMaster();
+		var gui = new dat.GUI(),
+			param = new ParamMaster();
 
 		//ライン用パラメータ
 		var paramLineLen =  gui.add(param, 'lineLen',1,500),
 			paramLineWidth = gui.add(param, 'lineWidth',0.1,50),
-			paramLineDeff = gui.add(param, 'lineDeff',0,50),
+			paramLineDeff = gui.add(param, 'lineDeff',0,100),
 			paramDevideY =  gui.add(param, 'devideY',1,100),
 			paramSlideY = gui.add(param, 'slideY',0,10),
 			paramMarginY = gui.add(param,'marginY',0,100),
@@ -226,7 +225,6 @@ $(function(){
 			var bgColor = "rgb("+ (val.r>>0) +", "+ (val.g>>0) +", "+ (val.b>>0) +")";
 			canvas.style.backgroundColor = bgColor;
 //			doc.getElementById("contents").style.color = colorOnRGB(val);
-			return false;
 		});
 
 
@@ -247,7 +245,6 @@ $(function(){
 //			this.deff = Math.random()*(param.lineDeff>>1);
 //			this.init();
 //			this.lineWidth = ((Math.random()*5)>>0) * param.lineWidth;
-			return false;
 		};
 		Line.prototype = {
 			x:0,
@@ -276,7 +273,6 @@ $(function(){
 				if(pattern === "slide") t.slide();
 				else if(pattern === "random") t.random();
 				else if(pattern === "foward") t.foward();
-				return false;
 			},
 			random:function(){
 				var c = ctx,
@@ -289,7 +285,6 @@ $(function(){
 
 				//移動差の分割描画
 				t.x = (Math.random()*p.w + p.x)>>0;
-				return false;
 			},
 			slide:function(){
 				var c = ctx,
@@ -307,7 +302,6 @@ $(function(){
 				t.x += deff;
 				if(p.x > t.x) t.x = p.x;
 				else if(out < t.x) t.x = out;
-				return false;
 			},
 			foward:function(){
 				var c = ctx,
@@ -322,7 +316,6 @@ $(function(){
 				var out = p.x+p.w;
 				t.x +=  Math.random()*(param.lineDeff>>1);
 				if(out < t.x) t.x = p.x;
-				return false;
 			}
 		}
 
@@ -448,7 +441,6 @@ $(function(){
 					}(i));
 
 				};
-				return false;
 			}
 		};
 
@@ -483,10 +475,6 @@ $(function(){
 
 			//基本の描画
 			for(var i=0; i<len; i++) ary[i].draw();
-
-
-			
-			return false;
 		};
 
 
@@ -498,7 +486,6 @@ $(function(){
 
 			win.requestAnimationFrame(loop);
 			stats.end();
-			return false;
 		};
 
 
@@ -509,49 +496,27 @@ $(function(){
 			var bgColor = "rgb("+ value.r +", "+ value.g +", "+ value.b +")";
 			canvas.style.background = bgColor;
 			win.requestAnimationFrame(loop);
-			return false;
 		}();
 
-
-		/*object リサイズ用オブジェクト
-		--------------------------------------------------------------------*/
-		var Resizer = function(){};
-		Resizer.prototype = {
-			winCheck:function(){
-				n_iw = win.innerWidth || doc.body.clientWidth;
-				n_ih = win.innerHeight || doc.body.clientHeight;
-				return false;
-			},
-			canvasResize:function(){
-				canvas.width = n_iw;
-				canvas.height = n_ih;
-				dict.init();
-				return false;
-			}
-		};
-		var resizer = new Resizer();
 
 
 		/*function リサイズ実行
 		--------------------------------------------------------------------*/
 		var resizeFunc = function(){
-			resizer.winCheck();
-			resizer.canvasResize();
-			return false;
+			n_iw = win.innerWidth || doc.body.clientWidth;
+			n_ih = win.innerHeight || doc.body.clientHeight;
+			canvas.width = n_iw;
+			canvas.height = n_ih;
+			dict.init();
 		};
 
 
-		/*contents 処理分岐
-		--------------------------------------------------------------------*/
-		if(s_pageClass === "full"){
-			window.addEventListener("resize",resizeFunc);
-		}
-
-        return false;
+		window.addEventListener("resize",resizeFunc);
+		resizeFunc()
 	}
 
 
 
-	$(window).on("load",init);
+	init();
 })
 //SCRIPT END

@@ -265,7 +265,7 @@
 				if(param.flgArc === true) c.arc(pX,pY,2,0,n_PI,false);
 				c.stroke();
 				
-				if(i === 0) console.log(p);
+//				if(i === 0) console.log(p);
 				
 //				this.noiseSeed += 0.01;
 			}
@@ -336,7 +336,7 @@
 		stats.begin();
 		draw();
 		stats.end();
-//		if(param.flgAnim === true) window.requestAnimationFrame(loop);
+		if(param.flgAnim === true) window.requestAnimationFrame(loop);
 	};
 
 
@@ -354,9 +354,8 @@
 	/*flow 開始
 	--------------------------------------------------------------------*/
 	window.addEventListener("resize",resetup);
-
+	resize();
 	setup();
 	loop()
 	
-	return false;
 }());

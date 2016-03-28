@@ -96,9 +96,9 @@
 		
 		this.noiseScale 	= 500;
 		this.noiseStrength	= Math.random()*10 - 5; 	// how turbulent is the flow? 流れはどのように乱流ですか？
-		this.speed 			= 2; 	// how fast do particles move? どのように高速粒子が移動するのですか？
-		this.growthSpeed 	= 1; 	// how fast do particles change size? どのように高速粒子のサイズを変更できますか？
-		this.maxSize 		= 4; 	// how big can they get? 彼らはどのように大きな得ることができますか？
+		this.speed 			= 0.1; 	// how fast do particles move? どのように高速粒子が移動するのですか？
+		this.growthSpeed 	= 0.1; 	// how fast do particles change size? どのように高速粒子のサイズを変更できますか？
+		this.maxSize 		= 2; 	// how big can they get? 彼らはどのように大きな得ることができますか？
     },
         ParticleMember = Particle.prototype;
 
@@ -165,19 +165,18 @@
 //		_ctx.lineWidth 	= 0.1;
 //		_ctx.lineWidth = this.r;
 
-		_ctx.fillRect(this.x, this.y,this.r,this.r);
+//		_ctx.fillRect(this.x, this.y,this.r,this.r);
 		
-//        _ctx.beginPath();
-//        _ctx.arc(this.x, this.y, this.r, 0, this.endAngle, false);
-//        _ctx.fill();
+        _ctx.beginPath();
+        _ctx.arc(this.x, this.y, this.r, 0, this.endAngle, false);
+        _ctx.fill();
 //		_ctx.moveTo(_x,_y);
 //		_ctx.lineTo(this.x,this.y);
 //        _ctx.stroke();
 		
 		this.noiseScale 	+= 0.001;
 		this.noiseStrength 	+= (Math.random()*20 - 10) / 1000;
-		this.maxSize 		+= (Math.random()*2 - 1);
-
+//		this.maxSize 		+= (Math.random()*2 - 1);
     };
 	
 	
@@ -298,8 +297,8 @@
 //		_c.fillRect(0,0,width,height);
 //		_c.globalAlpha = 1;
 
-//		this.loop();
-		for(var i=0; i<500; i++) this.render();
+		this.loop();
+//		for(var i=0; i<500; i++) this.render();
 			
 	};
 	

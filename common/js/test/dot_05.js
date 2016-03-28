@@ -26,7 +26,6 @@ $(function(){
 		var ctx = canvas.getContext("2d");
 
 		var pages = new PageInfo();
-		var lib = new Library_Anim();
 
 		var $main = $(doc.getElementById("main"));
         var $ancherTag = (s_pageUA === "webkit") ? $("body"):$("html");
@@ -64,7 +63,6 @@ $(function(){
 
 		/*function 拡張　requestAnimFrame()
 		--------------------------------------------------------------------*/
-		lib.requestAnimFrame();
 
 
 

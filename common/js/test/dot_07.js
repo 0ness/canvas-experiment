@@ -1,174 +1,90 @@
 ;(function(window, document) {
 	"use strict";
 
-
-	var PERLIN = new SimplexNoise(),
-		LIB = new Planet(),
-		PARAM = {
-			//描画要素
-			spd:4,
-			lineWidth:1,
-			bgAlpha:0.6,
-			composition:"source-over",
-			noiseRange:0.1,
-			noiseLevel:50,
-			radius:50,
-			interval:10,
-			//色
-			fillColor:LIB.getRndRGB(200),
-			strokeColor:LIB.getRndRGB(200),
-			bgColor:"#000400",
-			//分岐
-			flgColor:false,
-			flgStroke:true,
-			flgFill:false,
-			flgArc:false,
-			flgBG:false,
-			flgAnim:true
-		};
-
 	
-	
-	
-	/*base object
-	--------------------------------------------------------------------*/
-
-	/* @object Stats
-	 * 処理速度確認用
-	*/
-	var stats = new Stats();
-	stats.setMode( 0 );
-	document.body.appendChild( stats.domElement );
-	stats.domElement.style.position = "fixed";
-	stats.domElement.style.right = "0";
-	stats.domElement.style.bottom = "5px";
-
-
-	/* @object
-	 * dat.GUI用オブジェクト
-	 */
-	var gui = new dat.GUI(),
-		//		paramLineWidth = gui.add(param, 'lineWidth',0.1,50),
-		paramNoiseLevel = gui.add(PARAM, 'noiseLevel',1,300),
-		paramNoiseRange = gui.add(PARAM, 'noiseRange',0,1),
-		paramPointInterval = gui.add(PARAM, 'interval',0.1,100);
-
-	gui.add(PARAM,"spd",0,20,false);
-	gui.add(PARAM,"radius",0,200,false);
-	gui.add(PARAM,'composition',["source-over","xor","lighter","multiply","difference"]);
-	gui.add(PARAM, 'flgStroke',false);
-	//	gui.add(param, 'flgFill',false);
-	//	gui.add(param, 'flgBG',false);
-	//	gui.addColor(param, 'fillColor');
-	//	gui.addColor(param, 'strokeColor');
-	gui.add(PARAM, 'flgArc');
-	gui.add(PARAM, 'flgColor');
-	gui.add(PARAM, 'bgAlpha',0,1);
-	gui.addColor(PARAM, 'bgColor');
-	var paramFlgAnim = gui.add(PARAM, 'flgAnim',false);
-
-	
-//	var s_r = (Math.random()*255)>>0;
-//	var s_g = (Math.random()*255)>>0;
-//	var s_b = (Math.random()*255)>>0;
-//	var s_dotColor = "rgb("+s_r+", "+s_g+", "+s_b+",1)";
-//	var s_ctxComposition = "xor";
-//
-//	var n_Loop = 28;
-//	var n_ObjLen = 60;
-//	var n_PI = Math.PI*2;
-//	var n_Angle = n_PI<<1;
-//	var n_DisLimit = 50;
+	var canvas 		= document.getElementById("myCanvas"),
+		ctx 		= canvas.getContext("2d"),
+		winWidth 	= window.innerWidth || document.body.clientWidth,
+		winHeight	= window.innerHeight || document.body.clientHeight,
+		mousePoint 	= {
+			x:0,
+			y:0
+		},
+		vanishingPoint = {
+			x:0,
+			y:0
+		}
 	
 	
 	
 	/*contents object
 	--------------------------------------------------------------------*/
-	var Dot = function(){},
+	var Dot = function(_param){
+		this.x 			= _param.x;
+		this.y 			= _param.y;
+		this.z 			= _param.z;
+		this.bx 		= _param.x;
+		this.by 		= _param.y;
+		this.bz			= _param.z;
+		this.scale  	= _param.scale;
+	},
 		_Dot = Dot.prototype;
 	
 	//member property
-	_Dot.ctx		= null;
-	_Dot.x 			= 0;
-	_Dot.y 			= 0;
-	_Dot.z 			= 1;
-	_Dot.size		= 10;
-	_Dot.angleX		= 0;
-	_Dot.angleY		= 0;
-	_Dot.angleZ		= -90;
-	_Dot.radiusX	= 270;
-	_Dot.radiusY	= 82;
-	_Dot.spd 		= 0.5;
-	_Dot.spdZ 		= 1;
-	_Dot.scale  	= 1.2;
+	_Dot.adjustZ	= -300;
+	_Dot.size		= 20;
 	_Dot.alpha		= 1;
-	_Dot.PI	 		= 3.141592653589793 / 180;
-	_Dot.arnEndAngle= 3.141592653589793 << 1;
-	_Dot.isFoward	= true;
+	_Dot.endAngle	= 3.14 * 2;
 	
 	//member method
-	_Dot.init 		= function(){};
-	_Dot.move		= function(){
-		var _self = this,
-			_spd = _self.spd,
-			_pi = _self.PI,
-			_cx = 450,
-			_cy = 310,
-			_rx = _self.angleX * _pi,
-			_ry = _self.angleY * _pi,//度をラジアンに変換
-			_gx = ((_self.radiusX * Math.cos(_rx))>>0) + _cx,
-			_gy = ((_self.radiusY * Math.sin(_ry))>>0) + _cy,//円運動の値を計算
-			_downForce = 0.15;
-
-		_self.x += (_gx - _self.x) * _downForce;
-		_self.y += (_gy - _self.y) * _downForce;
-		_self.angleX += _spd;
-		_self.angleY += _spd;
-		_self.angleZ += _self.spdZ;
-
-		if(_self.angleX > 180){
-			_self.angleX = -180;
-		}
-		if(_self.angleY > 360){
-			_self.angleY = -360;
-		}
-		if(_self.angleZ > 360){
-			_self.angleZ = -360;
-		}
-		
-		_self.draw();
-	};
-	
+	/**
+	 * 描画
+	 */
 	_Dot.draw = function(){
-		var _self	= this,
-			_ctx	= _self.ctx,
-			_angle 	= _self.angleX,
-			_angleZ = _self.angleZ,
-			_size 	= _self.size * _self.scale,
-			_alpha  = _self.alpha,
-			_x 		= _self.x,// + (_self.radiusX>>1),
-			_y 		= _self.y;// + (_self.radiusY>>1);
+		var _ctx	= ctx,
+			_size 	= (this.size * this.scale * 100 | 0)/100,
+			_x 		= this.x>>0,
+			_y 		= this.y>>0,
+			_alpha  = (0.8 - (this.z / 500)) + 0.5;
 
-//		var _per = (((1 - ( 100 - Math.abs(_angleZ - 90)) / 100 ))*100>>0)/100;
-//		_size *= (_per+0.5);
-
-		//表裏確認
-//		if(_angle < 0){
-//			_ctx.fillStyle = "#ffffff";
-//		}else if(_angle > 0){
-//			_ctx.fillStyle = "#ff0000";
-//		}
-		_ctx.fillStyle = "rgba(5,255,255," + 0.1 + ")";
+//		_size 	= (_size > 10) ? 10 : _size;
+		_alpha  = (_alpha < 0.05) ? 0.05 : _alpha;
 		
-//		console.log(_x,_y,_size);
-		
-		//プロパティ反映
+		_ctx.fillStyle = "#ffffff";
 		_ctx.beginPath();
-		_ctx.arc(_x,_y,_size,0,_self.arnEndAngle,false);
+		_ctx.arc(this.bx,this.by,1,0,this.endAngle,false);
+		_ctx.fill();
+
+		if(_size <= 0) _size = 0.01;
+		_ctx.fillStyle = "rgba(5,255,255," + _alpha + ")";
+		_ctx.beginPath();
+		_ctx.arc(_x,_y,_size,0,this.endAngle,false);
 		_ctx.fill();
 	};
-
 	
+	/**
+	 * 座標計算
+	 * @param {number} _fl 視野角
+	 */
+	_Dot.move = function(_fl){
+		var _vpx = vanishingPoint.x,
+			_vpy = vanishingPoint.y,
+			_scale = _fl / (_fl + (this.z + this.adjustZ));
+		
+		this.scale = _scale;
+
+		//平面的な目標値
+		var _nextX = (mousePoint.x - _vpx),
+			_nextY = (mousePoint.y - _vpy);
+
+		//視野角を計算した目標値 =　マウスに関連した座標 - Dotの持つ固有の初期値
+		var _x = ((_vpx + _nextX * _scale) + ((this.bx - _vpx) * _scale))>>0,
+			_y = ((_vpy + _nextY * _scale) + ((this.by - _vpy) * _scale))>>0;
+
+		this.x += (_x - this.x)*0.15;
+		this.y += (_y - this.y)*0.15;
+		this.draw();
+	};
 
 	
 
@@ -179,174 +95,207 @@
 	 * @object Canvas
 	 */
 	var CANVAS = function(){
-		var _self = this;
-		_self.elm 	= document.getElementById("myCanvas");
-		_self.ctx 	= _self.elm.getContext("2d");
-		_self.width = window.innerWidth || document.body.clientWidth;
-		_self.height= window.innerHeight || document.body.clientHeight; 
-		_self.init();
+		this.ary			= [];
+		this.noiseRange 	= 0;
+		this.noiseSeed 		= 0;
+		this.init();
 	},
-		_CANVAS = CANVAS.prototype;
+		Member = CANVAS.prototype;
 
-	_CANVAS.elm = null;
-	_CANVAS.ctx = null;
+	
+	Member.PI 			= (Math.PI/180)*360;
+	Member.dotLength 	= 100;
+	Member.doZLayer 	= true;
+	Member.focalLength	= 200;
 
-	_CANVAS.ary	= [];
-
-	_CANVAS.width	= null;
-	_CANVAS.height	= null;
-	_CANVAS.PI 		= (Math.PI/180)*360;
-
-	_CANVAS.noiseRange 	= 0;
-	_CANVAS.noiseSeed 	= 0;
-
-
+	
+	
 	
 	/*Method
 	--------------------------------------------------------------------*/
-	_CANVAS.init = function(){
-		var _self = this,
-			_len = 10,
-			_w = _self.width,
-			_h = _self.height,
-			_cx = _w >> 1,
-			_cy = _h >> 1,
-			_rx = 0,
-			_ry = 0,
-			_rz = 0,
-			_angle = 360 / _len,
-			_dot = null,
-			_a = 0;
-		
-		var xNum 		= 8,
-			yNum 		= 8,
-			zNum 		= 10,
-			xInterval 	= 50,
-			yInterval 	= 50,
-			zInterval 	= 50;
-
-		for( var i=0; i<xNum; ++i ) {
-			for( var j=0; j<yNum; ++j ) {
-				for( var k=0; k<zNum; ++k ) {
-					var _dot = new Dot();
-					_dot.x = (i - xNum*0.5)*xInterval;
-					_dot.y = (j - yNum*0.5)*yInterval;
-					_dot.z = (k - zNum*0.2)*zInterval;
-					_dot.ctx = _self.ctx;
-					_self.ary.push(_dot);
-				}
-			}
+	/**
+	 * 開始
+	 */
+	Member.init = function(){
+		var _self = this;
+		window.addEventListener("resize",this.resize.bind(this));
+		window.addEventListener("mousemove",function(e){
+			mousePoint = _self.getMousePoint(e);
+		});
+		document.addEventListener("keydown" ,this.zControl.bind(this));
+		this.resize();
+		this.createDot();
+		this.loop();
+	};
+	
+	/**
+	* 座標取得：マウスポインタ座標取得
+	* @method getMousePoint
+	* @param{Event} ターゲットイベント
+	*/
+	Member.getMousePoint = function(e){
+		var _p = {x:0,y:0},
+			doc = document.body;
+		if(e){
+			_p.x = e.pageX;
+			_p.y = e.pageY;
+		}else{
+			var ev = event;
+			_p.x = ev.x + doc.scrollLeft;
+			_p.y = ev.y + doc.scrollTop;
 		}
-		
-//		for(var i =0; i<_len; i++){
-//			_dot = new Dot();
-//			_a =(i*_angle - 180)>>0;
-//			_rx 		= Math.random()*_w;
-//			_ry 		= Math.random()*_h;
-//			_rz 		= Math.random()*50;
-//			
-//			_dot.ctx	= _self.ctx;
-////			_dot.x 		= _rx;
-////			_dot.y 		= _ry;
-//			_dot.z 		= _rz;
-//			
-//			_dot.angleY = Math.random()*_h;
-//			_dot.radiusX= _cx>>1;
-//			_dot.radiusY= Math.random()*_h - _cy;
-//			
-//			_self.ary[i] = _dot;
-//		};
-//		
-		_self.resize();	
-		_self.loop();
-		window.addEventListener("resize",_self.resize.bind(_self));
+		return _p;
+	};
+	
+	/**
+	 * ドット生成
+	 */
+	Member.createDot = function(){
+		var _w 		= winWidth,
+			_h 		= winHeight;
+		this.ary = [];
+		for(var i=0; i<this.dotLength; i++){
+			var _z = Math.random()*1000 >> 0,
+				_dot 		= new Dot({
+					x 		: (Math.random()*_w >> 0) + (Math.random()*1000) - 500,
+					y 		: (Math.random()*_h >> 0) + (Math.random()*1000) - 500,
+					z 		: _z,
+					scale 	: this.focalLength / (this.focalLength + _z)
+				});
+			this.ary[i] = _dot;
+		}
 	};
 	
 	/**
 	 * ループ処理
 	 */
-	//	private var focus:uint = 250;
-	//	private function render(e:Event):void {
-	//		renderList.sortOn( "z", Array.DESCENDING|Array.NUMERIC );
-	//		var l:uint = renderList.length;
-	//		for( var i:uint=0; i<l; ++i ) {
-	//			var obj:Object = renderList[i];
-	//			if( obj.z > -focus ) {
-	//				var scale :Number= focus/(focus+obj.z);
-	//				obj.view.x = screenX + obj.x * scale;
-	//				obj.view.y = screenY + obj.y * scale;
-	//				obj.view.scaleX = obj.view.scaleY = scale;
-	//				obj.view.alpha = Math.min( 1, scale );
-	//				obj.view.visible = true;
-	//				this.setChildIndex( obj.view, i );
-	//			}
-	//			else {
-	//				obj.view.visible = false;
-	//			}
-	//		}
-	//	}
-	_CANVAS.loop = function(){
-		var _self 	= this,
-			_ctx	= _self.ctx,
-			_ary 	= _self.ary,
-//			_rendar = 
+	Member.loop = function(){
+		var _ary 	= this.ary,
 			_len 	= _ary.length,
-			_cx 	= _self.width	>> 1,
-			_cy 	= _self.height	>> 1,
-			_dot,
-			_focus	= 250;
-
-		_self.setting();
+			_fl		= this.focalLength;
 		
-		for(var i =0; i<_len; ++i){
-//			_ary[i].move();	
-			_dot = _ary[i];
-			var _scale 	= _focus / (_focus + _dot.z);
-			_dot.x 		= _cx + _dot.x + _scale;
-			_dot.y 		= _cy + _dot.y + _scale;
-			_dot.scale	= _scale;
-			_dot.alpha = Math.min(1,_scale);
-
+		this.baseDraw();
+		for(var i =0; i<_len; i++){
+			var _dot = _ary[i];
+			_dot.move(_fl)
 			_dot.draw();
-		};
-		
-//		window.requestAnimationFrame(_self.loop.bind(_self));
+		}
+		window.requestAnimationFrame(this.loop.bind(this));
 	};
 	
 	/**
-	 * 設定ボイラーテンプレート
+	 * 基本的なcanvas塗り
 	 */
-	_CANVAS.setting = function(){
+	Member.baseDraw = function(){
 		var _self = this,
-			_ctx = _self.ctx;
+			_ctx = ctx,
+			_w = winWidth,
+			_h = winHeight;
 		
+		//描画リセット
 		_ctx.fillStyle = "#000000";
-		_ctx.fillRect(0,0,_self.width,_self.height);
+		_ctx.fillRect(0,0,_w,_h);
+		
+		//ガイド表示
+		_ctx.beginPath();
+		_ctx.fillStyle = "rgba(128, 128, 128, 0.2)";
+		_ctx.fillRect(0,_h>>1,_w,1);
+		_ctx.fillRect(_w>>1,0,1,_h);
 	};
 	
 	/**
-	 * リサイズ処理
+	 * リサイズ時にcanvas範囲を調整
 	 */
-	_CANVAS.resize  = function(){
-		var _self = this,
-			_elm = _self.elm,
-			_width = window.innerWidth || document.body.clientWidth,
-			_height= window.innerHeight || document.body.clientHeight;
-		_elm.width = _width;
-		_elm.height = _height;
-		_self.width = _width;
-		_self.height = _height;
+	Member.resize  = function(){
+		canvas.width 	= winWidth = window.innerWidth || document.body.clientWidth;
+		canvas.height	= winHeight = window.innerHeight || document.body.clientHeight;
+		vanishingPoint.x = winWidth >> 1;
+		vanishingPoint.y = winHeight >> 1;
 	};
 
+	/**
+	 * z軸の操作
+	 * キーボードの↑と↓で操作
+	 */
+	Member.zControl = function(e){
+		var _ary 	= this.ary,
+			_len 	= _ary.length,
+			_dot 	= null,
+			_code 	= e.keyCode,
+			_zAdjust= 20;
+		
+		if(_code === 38){
+			_Dot.adjustZ += _zAdjust; 
+		}else if(_code === 40){
+			_Dot.adjustZ -= _zAdjust; 
+		}
+	};
+	
+	/**
+	 * z軸の有無切り替え
+	 */
+	Member.zPositionToggle = function(){
+		if(this.doZLayer) this.zDefaultAssign();
+		else this.zSameAssign();
+	};
 
+	/**
+	 * z軸再指定
+	 */
+	Member.zDefaultAssign = function(){		
+		var _ary = this.ary,
+			_len = _ary.length,
+			_dot = null;
+		for(var i=0; i<_len; i++){
+			_dot = _ary[i];
+			_dot.z = _dot.bz;
+		}
+	};
 
+	/**
+	 * 各オブジェクトのz軸のリセット
+	 */
+	Member.zSameAssign = function(){
+		var _ary = this.ary,
+			_len = _ary.length,
+			_dot = null;
+		for(var i=0; i<_len; i++){
+			_dot = _ary[i];
+			_dot.z = 0;
+		}
+	};
 	
 	
+	
+	
+	/*base object
+	--------------------------------------------------------------------*/
 
+	/* @object
+	 * dat.GUI用オブジェクト
+	 */
+	var gui = new dat.GUI();
 
+	gui.add(Member, 'dotLength',0,400).onChange(function(e){
+		Member.dotLength = e>>0;
+		Index.createDot();
+	});
+	gui.add(Member, 'focalLength',1,500);
+	gui.add(_Dot, 'adjustZ',-600,600);
+	gui.add(_Dot, 'size',1,100);
+	gui.add(Member,"doZLayer").onChange(function(e){
+		Member.doZLayer = e;
+		Index.zPositionToggle();
+	});
+	
+	
+	
+	
+	
+	
+	
 
 	window.INDEX = CANVAS;
+	
 })(window, document);
-
-
 var Index = new INDEX();

@@ -41,8 +41,7 @@
 	/* @object paramMaster
 	 * 描画処理のパラメータを管理する
 	*/
-	function ParamMaster(){}
-	ParamMaster.prototype = {
+	var param = {
 		//描画要素
 		lineWidth:1,
 		bgAlpha:1,
@@ -57,32 +56,21 @@
 		flgStroke:true,
 		flgFill:false,
 		flgBG:false,
-		flgAnim:true
+		flgAnim:false
 	};
-	var param = new ParamMaster();
 
 	
 	/* @object
 	 * dat.GUI用オブジェクト
 	 */
 	var gui = new dat.GUI(),
-		paramLineWidth = gui.add(param, 'lineWidth',0.1,50),
 		paramNoiseLevel = gui.add(param, 'noiseLevel',1,300),
 		paramNoiseRange = gui.add(param, 'noiseRange',0,0.1);
 
 	gui.add(param,'composition',["source-over","xor","lighter","multiply","difference"]);
-	gui.add(param, 'flgStroke',false);
-	gui.add(param, 'flgFill',false);
-	gui.addColor(param, 'fillColor');
-	gui.addColor(param, 'strokeColor');
-	gui.add(param, 'flgBG',false);
-	gui.add(param, 'bgAlpha',0,1);
 	var paramFlgAnim = gui.add(param, 'flgAnim',false);
 
 	//数値の変更処理
-	paramLineWidth.onChange(function(val){
-		param.lineWidth = (val < 1)? val:val>>0;
-	});
 	paramNoiseLevel.onChange(function(val){
 		param.noiseLevel = val>>0;
 		setup();
@@ -102,7 +90,6 @@
 	/*class
 	--------------------------------------------------------------------*/
 	var Moon = function(a_prop){
-		"use strict";
 		var _self = this,
 			_prop = a_prop;
 		
@@ -122,13 +109,13 @@
 		};
 
 	},
-		MoonStatic = Moon.prototype;
+		MoonMember = Moon.prototype;
 		
 	/* クラスメンバ */
-	MoonStatic.gridWidth 	= 80;
-	MoonStatic.gridHeight 	= 80;
-	MoonStatic.pi 	= Math.PI*360;
-	MoonStatic.draw	= function(){
+	MoonMember.gridWidth 	= 80;
+	MoonMember.gridHeight 	= 80;
+	MoonMember.pi 	= Math.PI*360;
+	MoonMember.draw	= function(){
 		var _self 	= this,
 			_ctx 	= ctx,
 			_grid 	= _self.grid,
@@ -164,13 +151,11 @@
 //		_obj.pi = _self.getArc(_obj.angle);
 		
 	};
-	MoonStatic.getArc = function(a_num){
+	MoonMember.getArc = function(a_num){
 		var _pi 	= Math.PI / 180,
 			_radian	= a_num *_pi,
 			_radius = (360 * Math.sin(_radian)),
 			_arc 	= _radius * _pi;
-		//		console.log("number:"+a_num,_arc);
-		//		console.log(_radian);
 		if(_arc < 0)_arc *= -1;
 		return _arc;
 	};
@@ -178,7 +163,6 @@
 	
 	
 	var MoonManager = function(){
-		"use strict";
 		this.init();
 	},
 		ManagerStatic = MoonManager.prototype;
@@ -187,12 +171,14 @@
 	ManagerStatic.len 	= 0;
 	ManagerStatic.init 	= function(){
 		var _self = this,
-			_moon 	= MoonStatic,
+			_moon 	= MoonMember,
 			_arr	= _self.arr,
 			_len	= _arr.length,
 			_hLen	= 1 + (winHeight / _moon.gridHeight)>>0,
 			_vLen	= 1 + (winWidth / _moon.gridWidth)>>0,
-			_count	= 0;
+			_count	= 0,
+			_angleCount = Math.random()*360 >>0,
+			_level  =  (Math.random()*10 >>0) + 1;
 		
 		for(var i=0; i<_vLen; i++){
 			for (var l = 0; l < _hLen; l++) {
@@ -200,10 +186,11 @@
 					x:i*_moon.gridWidth,
 					y:l*_moon.gridHeight,
 //					pi:_self.getArc(_count),
-					angle:_count
+					angle:(_angleCount * _level)
 				});
 				_arr[_count] = _obj;
 				_count++;
+				_angleCount++;
 			}
 		}
 	};
@@ -211,9 +198,7 @@
 		var _self = this,
 			_arr	= _self.arr,
 			_len	= _arr.length;
-		for (var i = 0; i < _len; i++){
-			_arr[i].draw();
-		}
+		for (var i = 0; i < _len; i++) _arr[i].draw();
 	};
 	
 	
