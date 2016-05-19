@@ -1,207 +1,251 @@
 ;(function(window, document) {
     "use strict";
-
+	
 	
 	var canvas 	= document.getElementById("myCanvas"),
 		ctx		= canvas.getContext("2d"),
-		LIB		= new Planet(),
-		winW	= LIB.getWindowWidth(),
-		winH	= LIB.getWindowHeight(),
+		winW	= 0,
+		winH	= 0,
 		rectX	= 0,
 		rectY 	= 0,
 		centerX	= 0,
 		centerY = 0,
+		adjustX = 0,
+		adjustY = 0,
 		radiusX = 0,
 		radiusY = 0,
 		PI		= Math.PI/180;
 	
 	
 	var points		= [],
-		pointMargin = 20,
-		pointLength = 0,
-		balloonArea	= 0;
+		pointMargin = 4,
+		pointLength = 0;
 	
 	
+	
+	
+	/*subClass
+	--------------------------------------------------------------------*/
+	/**
+	 * 座標オブジェクト
+	 * @param {object} _param パラメータ
+	 */
 	var Point = function(_param){
-		this.x 	= _param.x || 0;
-		this.y 	= _param.y || 0;
-		this.vx	= _param.vx || (Math.random()*2*10|0) / 10;
-		this.vy	= _param.vy || (Math.random()*2*10|0) / 10;
-		
-		this.rx = _param.rx || 0;
-		this.ry = _param.rx || 0;
-		this.rw = _param.rw || 0;
-		this.rh = _param.rh || 0;
-		
+		this.x 			= _param.x || 0;
+		this.y 			= _param.y || 0;
 		this.angle 		= _param.angle;
 		this.radian		= PI * this.angle;
-		this.roundLevel = 0;
-		this.adjustRoundPoint();
+		this.waveRadian = PI * this.angle;
 	},
 		PointMember = Point.prototype;
-	PointMember.roundScale = 40;
 	
 	/**
 	 * 表示更新
 	 */
 	PointMember.update = function(){
 		var _radian 		= this.radian,
-			_roundNoise		= (Math.random()*0.1*100|0)/100,
-			_roundMargin	= (_roundNoise + this.roundLevel) * this.roundScale,
-			_x = (centerX + ((_roundMargin + radiusX) * Math.sin(_radian))) |0,
-			_y = (centerY + ((_roundMargin + radiusY) * Math.cos(_radian))) |0;
+			_waveRadian		= this.waveRadian*17,
+			_peak			= 0.038,
+			_waveX			= (centerX - this.x - adjustX) * _peak * Math.sin(_waveRadian),
+			_waveY 			= (centerY - this.y - adjustY) * _peak * Math.sin(_waveRadian),
+			_x 				= centerX + ( radiusX * Math.sin(_radian)),
+			_y 				= centerY + ( radiusY * Math.cos(_radian));
+				
+		this.x = ((_x + _waveX) * 10 | 0) / 10 - adjustX;
+		this.y = ((_y + _waveY) * 10 | 0) / 10 - adjustY;
+//		this.angle 		= this.angle+0.1;
+//		this.waveRadian = PI * this.angle;
+
+		var _c =  ctx;
+		_c.lineTo(this.x,this.y);
+	};
+	
+	
+	
+	
+	/*Constructor
+   --------------------------------------------------------------------*/
+	/**
+     * @class INDEX
+     * @constructor
+     */
+	var Balloon = function(_param){
+		var _param = _param || {}
+		/*Property*/
+		this.width 		= _param.width || 175;
+		this.height		= _param.height || 143;
+		this.maxWidth 	= _param.maxWidth || 444;
+		this.maxHeight	= _param.maxHeight || 362;
+		this.nextWidth 	= 0;
+		this.nextHeight	= 0;
 		
-		if(_x < this.rx) _x = this.rx;
-		else if(_x > (this.rx+this.rw))_x = this.rx+this.rw;
-		if(_y < this.ry) _y = this.ry;
-		else if(_y > (this.ry+this.rh)) _y = this.ry+this.rh;
+		this.nextX 		= 0;
+		this.nextY		= 0;
 		
-		this.x = _x;
-		this.y = _y;
+		this.lineWidth	= 4;
+		this.downforce	= _param.downforce || 0.12;
+		this.fillColor 	= "#e4f4ff";
+		this.strokeColor= "#007dd4";
 		
+		this.doAnimation= false;
+		
+		this.init();
+	},
+		Member = Balloon.prototype;
+	
+	
+	
+	
+	/*Public Static Method
+	--------------------------------------------------------------------*/
+	Member.init = function(){
+		var _mw = this.maxWidth,
+			_mh = this.maxHeight,
+			_margin = this.lineWidth*4 + 50;
+
+		//句形の座標と、円の半径を取得
+		radiusX = this.width / 2;
+		radiusY = this.height / 2;
+		
+		winW = _mw + _margin;
+		winH = _mh + _margin;
+		canvas.width = _mw + _margin;
+		canvas.height= _mh + _margin;
+		centerX = (_mw >> 1) +  8;
+		centerY = (_mh >> 1) + 8;
+//		adjustX = (_mw - this.width) /2; 
+//		adjustY = (_mh - this.height) /2;
+		
+		this.createPoints();
+		this.draw();
 		this.draw();
 	};
 	
-	/**
-	 * 描画
-	 */
-	PointMember.draw = function(){
-		var _c =  ctx;
-		_c.lineTo(this.x,this.y);
-//		_c.fillStyle = "#b90000";
-//		_c.fillRect(this.x,this.y,5,5);
-	};
-	
-	/**
-	 * 角丸付近のポイントの座標調整
-	 */
-	PointMember.adjustRoundPoint = function(){
-		var _angle = this.angle,
-			_roundLevel = ( _angle - 90 )/ 90;
-		
-		//吹き出し型の楕円にする為の計算
-		_roundLevel += 0.5;
-		_roundLevel = parseFloat("."+(String( _roundLevel )).split(".")[1]);
-		_roundLevel = (Math.abs(_roundLevel - 0.5)*100 | 0)/100;
-		
-		//45と90の倍数の角度の計算
-		if(!_roundLevel) {
-			if(_angle%90 ===0) _roundLevel = 0;
-			else _roundLevel = 0.45;
-		}
-		console.log(_angle,_roundLevel);
-		this.roundLevel = _roundLevel;
-	};
-	
-	
-	
-	
-	var drawBaseBg	= function(){
-		ctx.fillStyle = "#000d43";
-		ctx.fillRect(0,0,winW,winH);
-	};
-	
-	var addBaseRect = function(){
-		var _x = 100,
-			_y = 100,
-			_w = 500,
-			_h = 300;
-		
-		//矩形描画
-//		ctx.fillStyle = "#fff";
-//		ctx.fillRect(_x,_y,_w,_h);
-		
-		//句形の座標と、円の半径を取得
-		radiusX = _w / 2;
-		radiusY = _h / 2;
-		centerX = _w / 2 + _x;
-		centerY = _h / 2 + _y;
-		
-		ctx.fillStyle = "#ff0000";
-		ctx.fillRect(centerX,centerY,5,5);
-		
+	Member.createPoints = function(){
+		var _outerArea = this.width * 2 + this.height * 2;
+
 		//外周からポイント数を算出
-		balloonArea = _w*2 + _h*2;
-		pointLength = balloonArea / pointMargin | 0;
+		pointLength = _outerArea / pointMargin | 0;
+		points = [];
 		for(var i=0; i<pointLength; i++){
 			points[i] = new Point({
-				angle: (360 / pointLength) * i,
-				rx:_x,
-				ry:_y,
-				rw:_w,
-				rh:_h
+				angle: (360 / pointLength) * i
 			});
 		};
-		
 	};
 	
-	var updatePoints = function(){
-		var _c = ctx,
-			_p,
-			_radian,
-			_startPoint = points[0];
+	/**
+	 * 描画　下地塗り
+	 */
+	Member.drawBase	= function(){
+		var _c = ctx;
+		_c.globalAlpha = 1;
+		_c.clearRect(0,0,winW,winH);
+		
+		_c.globalAlpha 		= 1;
+		_c.fillStyle 		= this.fillColor;
+		_c.strokeStyle 		= this.strokeColor;
+		_c.lineWidth 		= 4;
+		_c.lineCap 			= "round";
+		_c.shadowColor 		= 'rgba(0, 0, 0, 0.1)';
+		_c.shadowBlur 		= 10;
+		_c.shadowOffsetX 	= 10;
+		_c.shadowOffsetY 	= 10;
+	};
+	
+	/**
+	 * 描画　吹き出しのポイント更新
+	 */
+	Member.pointUpdate = function(){
+		var _c 			= ctx,
+			_points 	= points,
+			_startPoint = _points[0];
+		
+//		adjustX = ((this.maxWidth - this.width) /2 * 10 | 0) /10;
+//		adjustY = ((this.maxHeight - this.height) /2 * 10 | 0) /10;
 		
 		_startPoint.update();
 		_c.beginPath();
 		_c.moveTo(_startPoint.x,_startPoint.y);
-		for(var i=1; i<pointLength; i++){
-			points[i].update();	
-		};
+		for(var i=1; i<pointLength; i=(i+1)|0) _points[i].update();	
 		_c.closePath();
 		_c.fill();
+		_c.shadowColor 	= 'rgba(0, 0, 0, 0)';
+		_c.stroke();
 	};
 	
-	var draw = function(){
-		drawBaseBg();
-		addBaseRect();
-		updatePoints();
+	/**
+	 * 描画一式
+	 */
+	Member.draw = function(){
+		this.drawBase();
+		this.pointUpdate();
 	};
 	
-	
-	var resize = function(){
-		winW = LIB.getWindowWidth();
-		winH = LIB.getWindowHeight();
-		console.log(winW,winH);
-		canvas.width = winW;
-		canvas.height= winH;
-		draw();
+	/**
+	 * アニメーション指定のメソッド
+	 */
+	Member.scaleAnimation = function(_w,_h){
+		this.nextWidth 	= _w;
+		this.nextheight = _h;
+		this.animToNext();
 	};
 	
+	/**
+	 * 最大サイズへアニメーション
+	 */
+	Member.animToNext = function(){
+		var _nw = (this.nextWidth-this.width) * this.downforce,
+			_nh = (this.nextheight-this.height) * this.downforce;
+
+		this.width += (_nw*10|0)/10;
+		this.height+= (_nh*10|0)/10;
+
+		var _abs= Math.abs(this.width - this.nextWidth);
+		radiusX = this.width >> 1;
+		radiusY = this.height >> 1;
+
+		if(_abs < 2) return false; 
+		this.draw();
+		window.requestAnimationFrame(this.animToNext.bind(this));
+	};
+	
+	/**
+	 * 最大サイズへアニメーション
+	 */
+	Member.animToNextMax = function(){
+		this.scaleAnimation(444,362);
+	};
+
+	/**
+	 * 最大サイズへアニメーション
+	 */
+	Member.animToNextMin = function(){
+		this.scaleAnimation(175,143);
+	};
+
+		
 	
 	
+
 	
-	
-	window.addEventListener("resize",resize);
-	resize();
-	
-
-
-
-   /*Constructor
-   --------------------------------------------------------------------*/
-    /**
-     * @class INDEX
-     * @constructor
-     */
-    var Index = function() {},
-        Member = Index.prototype;
-
-
-
-
-    /*Private Static Property
-	--------------------------------------------------------------------*/
-
-
-
-
-    /*Public Static Method
-	--------------------------------------------------------------------*/
-	Member.init = function() {};
-
-
-
-
-
-    window.Index = Index;
+    window.Balloon = Balloon;
 })(window, document);
+
+
+var INDEX = new Balloon();
+
+
+
+
+/*develop object
+	--------------------------------------------------------------------*/
+/* @object
+	 * dat.GUI用オブジェクト
+	*/
+var GUI = new dat.GUI();
+GUI.add(INDEX,"width",10,800).onChange(function(){ INDEX.init() });
+GUI.add(INDEX,"height",10,800).onChange(function(){ INDEX.init() });
+GUI.add(INDEX,"height",10,800).onChange(function(){ INDEX.init() });
+GUI.add(INDEX,"animToNextMax");
+GUI.add(INDEX,"animToNextMin");

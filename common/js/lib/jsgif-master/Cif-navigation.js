@@ -25,8 +25,8 @@
 		this.frameLen 	= 0;
 		
 		this.loopCount	= _param.loopCount || 0;
-		this.fps		= _param.fps || 200;
-		this.delay		= _param.delay || 60;
+		this.fps		= _param.fps || 100;
+		this.delay		= _param.delay || 100;
 		this.doRecLoop	= false;
 
 		this.init();
